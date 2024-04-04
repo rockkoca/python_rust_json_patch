@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use pyo3::exceptions::PyValueError;
 use serde_json::Value;
 use json_patch::{patch as apply_patch, Patch};
 
@@ -12,12 +13,14 @@ struct JsonPatchManager {
 impl JsonPatchManager {
     #[new]
     fn new(initial_json: String) -> PyResult<Self> {
-        let original_json: Value = serde_json::from_str(&initial_json).unwrap();
+        let original_json: Value = serde_json::from_str(&initial_json)
+            .map_err(|e| PyValueError::new_err(format!("Failed to parse initial JSON: {}", e)))?;
         Ok(JsonPatchManager { original_json, counter: 0 })
     }
 
     fn set_original(&mut self, new_json: String) -> PyResult<()> {
-        self.original_json = serde_json::from_str(&new_json).unwrap();
+        self.original_json = serde_json::from_str(&new_json)
+            .map_err(|e| PyValueError::new_err(format!("Failed to parse new JSON: {}", e)))?;
         self.counter = 0;
         Ok(())
     }
@@ -27,8 +30,10 @@ impl JsonPatchManager {
     }
 
     fn apply_patch(&mut self, patch_str: String) -> PyResult<String> {
-        let patch_json: Patch = serde_json::from_str(&patch_str).unwrap();
-        apply_patch(&mut self.original_json, &patch_json).unwrap();
+        let patch_json: Patch = serde_json::from_str(&patch_str)
+            .map_err(|e| PyValueError::new_err(format!("Failed to parse patch JSON: {}", e)))?;
+        apply_patch(&mut self.original_json, &patch_json)
+            .map_err(|e| PyValueError::new_err(format!("Failed to apply patch: {}", e)))?;
         self.counter += 1;
         Ok(self.original_json.to_string())
     }
