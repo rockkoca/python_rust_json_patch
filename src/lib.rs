@@ -55,7 +55,7 @@ impl JsonPatchManager {
 }
 
 #[pymodule]
-fn python_rust_jsonpatch(_py: Python, module: &PyModule) -> PyResult<()> {
+fn rust_python_jsonpatch(_py: Python, module: &PyModule) -> PyResult<()> {
     module.add_class::<JsonPatchManager>()?;
     Ok(())
 }
