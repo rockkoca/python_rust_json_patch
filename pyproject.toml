@@ -1,6 +1,6 @@
 [project]
 name = "rust_python_jsonpatch"
-version = "0.1.5"
+version = "0.1.10"
 description = "Rust json path wrapper"
 authors = [{ name = "Koca", email = "admin@koca.win" }]
 license = "MIT"
@@ -16,3 +16,6 @@ classifiers = [
 [build-system]
 requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
+
+[project.urls]
+repository = "https://github.com/rockkoca/python_rust_json_patch"
