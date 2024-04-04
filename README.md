@@ -54,5 +54,7 @@ print(patch_manager.data)
 ## Performance Comparison for a 650KB JSON Object with a pure Python jsonpatch Implementation
 
 Average multiple: 6.05 Rust: 3.25ms Python: 19.58ms Loop count: 300 Patch operations: 10
+
 Average multiple: 6.48 Rust: 4.19ms Python: 26.73ms Loop count: 300 Patch operations: 20
+
 Average multiple: 6.11 Rust: 3.25ms Python: 19.77ms Loop count: 300 Patch operations: 30
