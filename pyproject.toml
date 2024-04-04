@@ -1,0 +1,18 @@
+[project]
+name = "python_rust_json_patch"
+version = "0.1.2"
+description = "Rust json path wrapper"
+authors = [{ name = "Koca", email = "admin@koca.win" }]
+license = "MIT"
+readme = "README.md"  # Assuming your README.md file is in Markdown and at the root of your project
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+[project.optional-dependencies]
+# Your dependencies here
+
+[build-system]
+requires = ["maturin>=0.10"]
+build-backend = "maturin"
