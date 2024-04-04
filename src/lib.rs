@@ -1,7 +1,11 @@
 use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
-use serde_json::Value;
 use json_patch::{patch as apply_patch, Patch, merge};
+use serde_json::{Value};
+use reqwest::blocking::Client;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use pyo3::types::{PyDict, PyString};
+use std::str::FromStr;
 
 #[pyclass]
 struct JsonPatchManager {
@@ -51,6 +55,54 @@ impl JsonPatchManager {
 
     fn get_counter(&self) -> PyResult<i64> {
         Ok(self.counter)
+    }
+
+    fn post_json(&self, url: String, headers: &PyDict, additional_data: Option<String>) -> PyResult<String> {
+        // Check if additional_data is provided and merge if necessary
+        let merged_json = if let Some(data_str) = additional_data {
+            let additional_data_json: Value = serde_json::from_str(&data_str)
+                .map_err(|e| PyValueError::new_err(format!("Failed to parse additional JSON data: {}", e)))?;
+
+            match (&self.original_json, &additional_data_json) {
+                (Value::Object(orig_obj), Value::Object(add_obj)) => {
+                    let mut merged = orig_obj.clone(); // Clone to avoid modifying the original
+                    for (key, value) in add_obj {
+                        merged.insert(key.clone(), value.clone());
+                    }
+                    Value::Object(merged)
+                }
+                _ => return Err(PyValueError::new_err("Original and additional data must be JSON objects")),
+            }
+        } else {
+            self.original_json.clone() // Use original JSON directly if no additional data
+        };
+
+        // Convert PyDict to HeaderMap
+        let mut header_map = HeaderMap::new();
+        for (key, value) in headers {
+            let key_str = key.downcast::<PyString>()?.to_str()?;
+            let value_str = value.downcast::<PyString>()?.to_str()?;
+            header_map.insert(
+                HeaderName::from_str(key_str).map_err(|e| PyValueError::new_err(format!("Invalid header name: {}", e)))?,
+                HeaderValue::from_str(value_str).map_err(|e| PyValueError::new_err(format!("Invalid header value: {}", e)))?,
+            );
+        }
+
+        // Perform the POST request
+        let client = Client::new();
+        let res = client.post(url)
+            .headers(header_map)
+            .json(&merged_json) // Use the potentially merged JSON for this request
+            .send()
+            .map_err(|e| PyValueError::new_err(format!("Failed to send POST request: {}", e)))?;
+
+        // Check for HTTP success and return the response body
+        if !res.status().is_success() {
+            Err(PyValueError::new_err(format!("POST request failed with status: {}", res.status())))
+        } else {
+            let body = res.text().map_err(|e| PyValueError::new_err(format!("Failed to read response body: {}", e)))?;
+            Ok(body)
+        }
     }
 }
 
