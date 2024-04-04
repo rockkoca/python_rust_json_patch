@@ -1,1 +1,1 @@
-Rust json path wrapper for testing purpose!
+Rust jsonpatch wrapper for testing purpose!
