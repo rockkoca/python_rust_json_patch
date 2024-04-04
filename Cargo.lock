@@ -184,7 +184,7 @@ dependencies = [
 
 [[package]]
 name = "python_rust_json_patch"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "json-patch",
  "pyo3",

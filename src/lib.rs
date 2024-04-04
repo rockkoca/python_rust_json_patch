@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
 use serde_json::Value;
-use json_patch::{patch as apply_patch, Patch};
+use json_patch::{patch as apply_patch, Patch, merge};
 
 #[pyclass]
 struct JsonPatchManager {
@@ -36,6 +36,13 @@ impl JsonPatchManager {
             .map_err(|e| PyValueError::new_err(format!("Failed to apply patch: {}", e)))?;
         self.counter += 1;
         Ok(self.original_json.to_string())
+    }
+
+    fn merge(&mut self, patch_str: String) -> PyResult<String> {
+        let doc: Value = serde_json::from_str(&patch_str)
+            .map_err(|e| PyValueError::new_err(format!("Failed to parse patch JSON: {}", e)))?;
+        merge(&mut self.original_json, &doc);
+        return Ok(self.original_json.to_string());
     }
 
     fn str(&self) -> PyResult<String> {
