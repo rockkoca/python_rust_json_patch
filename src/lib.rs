@@ -18,7 +18,12 @@ impl JsonPatchManager {
 
     fn set_original(&mut self, new_json: String) -> PyResult<()> {
         self.original_json = serde_json::from_str(&new_json).unwrap();
+        self.counter = 0;
         Ok(())
+    }
+
+    fn get_original(&self) -> PyResult<String> {
+        Ok(self.original_json.to_string())
     }
 
     fn apply_patch(&mut self, patch_str: String) -> PyResult<String> {
@@ -28,13 +33,17 @@ impl JsonPatchManager {
         Ok(self.original_json.to_string())
     }
 
-    fn get_original(&self) -> PyResult<String> {
+    fn str(&self) -> PyResult<String> {
         Ok(self.original_json.to_string())
+    }
+
+    fn get_counter(&self) -> PyResult<i64> {
+        Ok(self.counter)
     }
 }
 
 #[pymodule]
-fn python_rust_json_patch(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<JsonPatchManager>()?;
+fn python_rust_json_patch(_py: Python, module: &PyModule) -> PyResult<()> {
+    module.add_class::<JsonPatchManager>()?;
     Ok(())
 }
