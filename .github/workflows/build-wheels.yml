@@ -1,6 +1,6 @@
-name: Build Wheels
+name: Build and Upload Wheels
 
-on: [ push, pull_request ]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -8,8 +8,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest,windows-latest, macos-latest ]
-        python-version: [ 3.11, 3.12 ]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.11, 3.12]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -20,8 +20,23 @@ jobs:
         run: pip install maturin
       - name: Build wheel
         run: maturin build --release --strip --manylinux off --out dist
-      - name: Upload wheels
+      - name: Upload wheels to Artifact
         uses: actions/upload-artifact@v2
         with:
           name: wheels
           path: dist/*.whl
+
+  upload-to-pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: wheels
+          path: dist
+      - name: Upload wheels to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: dist
