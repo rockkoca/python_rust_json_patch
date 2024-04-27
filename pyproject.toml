@@ -1,6 +1,6 @@
 [project]
 name = "rust_python_jsonpatch"
-version = "0.1.12"
+version = "0.1.13"
 description = "Rust json path wrapper"
 authors = [{ name = "Koca", email = "admin@koca.win" }]
 license = "MIT"

@@ -53,6 +53,43 @@ impl JsonPatchManager {
         Ok(self.original_json.to_string())
     }
 
+    /// Removes specified nested keys from the JSON based on dot notation paths.
+    fn str_no_keys(&mut self, keys_to_remove: Vec<String>) -> PyResult<String> {
+        fn remove_by_path(item: &mut Value, path: &Vec<&str>) {
+            if path.is_empty() {
+                return;
+            }
+            match item {
+                Value::Object(obj) => {
+                    if path.len() == 1 {
+                        obj.remove(path[0]);
+                    } else {
+                        if let Some(next_item) = obj.get_mut(path[0]) {
+                            remove_by_path(next_item, &path[1..].to_vec());
+                        }
+                    }
+                }
+                Value::Array(arr) => {
+                    if let Ok(index) = path[0].parse::<usize>() {
+                        if path.len() == 1 {
+                            arr.remove(index);
+                        } else if let Some(next_item) = arr.get_mut(index) {
+                            remove_by_path(next_item, &path[1..].to_vec());
+                        }
+                    }
+                }
+                // For non-complex types, do nothing
+                _ => (),
+            }
+        }
+
+        let mut json = self.original_json.clone();
+        for key_path in keys_to_remove {
+            let path_parts: Vec<&str> = key_path.split('.').collect();
+            remove_by_path(&mut json, &path_parts);
+        }
+        Ok(json.to_string())
+    }
     fn get_counter(&self) -> PyResult<i64> {
         Ok(self.counter)
     }
